@@ -14,11 +14,10 @@ class APIConfig:
     base_url: str = "https://dev-eaa25-api-hpfyfcbshkabezeh.uaenorth-01.azurewebsites.net/"
     email: str = "eaa25admin@gmail.com"
     password: str = "qhv#1kGI$"
-    # game_id: str = "1f28aa60-beae-4302-af3c-74223c7201ab"  # Falcon's Grasp
-    # game_name: str = "falcons_grasp"
-    # 878f6f84-7d65-4ecc-9450-872ca7e1a3f3
+    # game_id: str = "314bc08a-e3b7-4ace-bf83-33141b014a97" 
+
     game_id: str = "878f6f84-7d65-4ecc-9450-872ca7e1a3f3"
-    # game_name: str = "Fast Reaction"
+    # game_name: str = "Cube Room Ball Game"
     game_name: str = "Falcon's Grasp"
     
    
