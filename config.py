@@ -50,18 +50,18 @@ class MQTTConfig:
     def __post_init__(self):
         if self.data_topics is None:
             self.data_topics = [
-                "CageGame/score/Pub",
+                "CubeRoomBall/score/Pub",
             ]
         
         if self.control_topics is None:
             self.control_topics = [
-                "CageGame/game/start",
-                "CageGame/game/stop", 
-                "CageGame/game/restart",
-                "CageGame/game/timer",
-                "CageGame/game/Activate",
-                "CageGame/game/Deactivate",
-                "CageGame/game/timerfinal"
+                "CubeRoomBall/game/start",
+                "CubeRoomBall/game/stop", 
+                "CubeRoomBall/game/restart",
+                "CubeRoomBall/game/timer",
+                "CubeRoomBall/game/Activate",
+                "CubeRoomBall/game/Deactivate",
+                "CubeRoomBall/game/timerfinal"
             ]
 
 
