@@ -5,6 +5,7 @@ from urllib3.util.retry import Retry
 from requests.exceptions import ConnectionError, Timeout, RequestException
 import time   
 import numpy as np
+import json
 from PyQt5.QtGui import QMovie,QPainter, QColor, QFont,QFontDatabase ,QImage, QPixmap,QPen, QPainterPath , QPolygonF, QBrush, QRadialGradient, QLinearGradient
 from PyQt5.QtCore import QTimer,Qt, pyqtSignal, pyqtSlot ,QThread , QTime,QSize,QRectF,QPointF, QUrl
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget ,QGridLayout,QLabel,QPushButton,QVBoxLayout,QHBoxLayout,QTableWidget,QTableWidgetItem,QHeaderView,QFrame
@@ -1196,13 +1197,24 @@ class GameManager(QThread):
                     individual_scores = self._prepare_individual_scores(scored, list_players_id)
                     logger.info(f"📊 Prepared individual scores: {individual_scores}")
                     
+                    # 🔒 SAVE PLAYER DATA TO CSV FIRST (before API submission)
+                    logger.info("💾 Saving CubeGame player data to CSV before API submission...")
+                    self._save_individual_players_csv(self.game_result_id, individual_scores, None)  # None = pre-submission
+                    self._save_pre_submission_log(self.game_result_id, individual_scores)
+                    logger.info("✅ CubeGame player data saved locally before submission")
+                    
                     # Submit scores with API safety check
                     if not hasattr(self, 'api') or self.api is None:
                         logger.error("❌ GameAPI not available for score submission")
                         return False
-                        
-                    logger.info(f"📤 Submitting scores to API with game_result_id: {self.game_result_id}")
+                    
+                    # Submit scores using original method (keep as main submitter)
+                    logger.info(f"🚀 Now submitting CubeGame scores to API with game_result_id: {self.game_result_id}")
                     success = self.api.submit_final_scores(self.game_result_id, individual_scores)
+                    
+                    # Save player CSV with final submission status (after API submission)
+                    self._save_individual_players_csv(self.game_result_id, individual_scores, success)
+                    
                     if success:
                         logger.info("✅ Scores submitted successfully")
                         # Get updated leaderboard
@@ -1262,6 +1274,107 @@ class GameManager(QThread):
         
         logger.info(f"📊 Prepared scores for {len(individual_scores)} players")
         return individual_scores
+    
+    def _save_individual_players_csv(self, game_result_id: str, individual_scores: list, success: bool):
+        """Save individual player scores for database revision"""
+        try:
+            csv_filename = "CubeGame_Individual_Players_Log.csv"
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            # Check if file exists to determine if we need headers
+            file_exists = os.path.exists(csv_filename)
+            
+            with open(csv_filename, 'a', newline='', encoding='utf-8') as csvfile:
+                fieldnames = [
+                    'timestamp', 'game_result_id', 'user_id', 'node_id', 
+                    'individual_score', 'submission_success', 'status'
+                ]
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                
+                # Write header if file is new
+                if not file_exists:
+                    writer.writeheader()
+                    logger.info(f"📝 Created new individual players log file: {csv_filename}")
+                
+                # Determine status based on success parameter
+                if success is None:
+                    status = "pre_submission"
+                elif success:
+                    status = "submitted_success"
+                else:
+                    status = "submitted_failed"
+                
+                # Write one row per player
+                for score_data in individual_scores:
+                    writer.writerow({
+                        'timestamp': timestamp,
+                        'game_result_id': game_result_id,
+                        'user_id': score_data.get('userID', 'Unknown'),
+                        'node_id': score_data.get('nodeID', 'N/A'),
+                        'individual_score': score_data.get('score', 0),
+                        'submission_success': success,
+                        'status': status
+                    })
+                
+            if success is None:
+                logger.info(f"📝 Player data saved to {csv_filename} BEFORE API submission")
+            else:
+                logger.info(f"📝 Player data status updated in {csv_filename} AFTER API submission")
+            
+        except Exception as e:
+            logger.error(f"❌ Error saving individual players log to CSV: {e}")
+            # Don't let CSV errors break the game flow
+    
+    def _save_pre_submission_log(self, game_result_id: str, individual_scores: list):
+        """Save a pre-submission log entry for safety"""
+        try:
+            csv_filename = "CubeGame_Pre_Submission_Backup.csv"
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            # Check if file exists to determine if we need headers
+            file_exists = os.path.exists(csv_filename)
+            
+            with open(csv_filename, 'a', newline='', encoding='utf-8') as csvfile:
+                fieldnames = [
+                    'timestamp', 'game_result_id', 'total_players', 'total_score', 
+                    'player_ids', 'individual_scores_json', 'status'
+                ]
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                
+                # Write header if file is new
+                if not file_exists:
+                    writer.writeheader()
+                    logger.info(f"📝 Created new pre-submission backup file: {csv_filename}")
+                
+                # Calculate totals
+                total_players = len(individual_scores)
+                total_score = sum(score_data.get('score', 0) for score_data in individual_scores)
+                
+                # Create player IDs list
+                player_ids = [score_data.get('userID', 'Unknown') for score_data in individual_scores]
+                player_ids_str = " | ".join(player_ids)
+                
+                # Convert individual scores to JSON string for complete backup
+                individual_scores_json = json.dumps(individual_scores)
+                
+                writer.writerow({
+                    'timestamp': timestamp,
+                    'game_result_id': game_result_id,
+                    'total_players': total_players,
+                    'total_score': total_score,
+                    'player_ids': player_ids_str,
+                    'individual_scores_json': individual_scores_json,
+                    'status': 'saved_before_submission'
+                })
+                
+            logger.info(f"📝 Pre-submission backup saved to {csv_filename}")
+            logger.info(f"   🆔 Game ID: {game_result_id}")
+            logger.info(f"   👥 Players: {total_players}")
+            logger.info(f"   🏆 Total Score: {total_score}")
+            
+        except Exception as e:
+            logger.error(f"❌ Error saving pre-submission backup: {e}")
+            # Don't let CSV errors break the game flow
     
     def _update_leaderboard(self):
         """Update the leaderboard data"""
