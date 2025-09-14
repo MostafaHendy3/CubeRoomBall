@@ -19,8 +19,14 @@ class APIConfig:
     game_id: str = "878f6f84-7d65-4ecc-9450-872ca7e1a3f3"
     # game_name: str = "Cube Room Ball Game"
     game_name: str = "Falcon's Grasp"
+    # game_status_timeout: int = 30  # Timeout for game status polling in seconds
+    # submit_score_timeout: int = 11  # Timeout for submit score in seconds
     
-   
+   # Timeout settings (in seconds)
+    auth_timeout: int = 30
+    game_status_timeout: int = 8
+    submit_score_timeout: int = 20
+    leaderboard_timeout: int = 12
 
 
 @dataclass
@@ -84,6 +90,7 @@ class Settings:
             password=os.getenv('CAGE_API_PASSWORD', APIConfig.password),
             game_id=os.getenv('CAGE_GAME_ID', APIConfig.game_id),
             game_name=os.getenv('CAGE_GAME_NAME', APIConfig.game_name),
+            game_status_timeout=int(os.getenv('CAGE_GAME_STATUS_TIMEOUT', APIConfig.game_status_timeout)),
         )
         
         # Load game settings
