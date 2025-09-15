@@ -2267,7 +2267,8 @@ class Active_screen(QWidget):
         self.Background.setGeometry(QtCore.QRect(0, 0, 1920*self.scale, 1080*self.scale))
         self.Background.setText("")
         self.Background.setScaledContents(True)
-
+        self.Background.setMovie(self.movie)
+        self.movie.start()
         
 
         
@@ -2329,8 +2330,7 @@ class Active_screen(QWidget):
         # Initialize Matrix Widget with scaled positioning
         # self.setup_matrix_widget()
         
-        self.Background.setMovie(self.movie)
-        self.movie.start()
+        
         
         # Game timer
         self.TimerGame = QTimer(MainWindow)
