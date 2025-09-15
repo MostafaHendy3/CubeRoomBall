@@ -1,10 +1,13 @@
 import serial
 import time
 import re
+import platform
+import serial.tools.list_ports
 
 class ST1Scale:
     """
     A Python class to interface with the ST1 Weighing Scale via RS-232 serial communication.
+    Windows-compatible version with COM port support.
     
     This class handles connecting, disconnecting, and parsing the various data formats
     as described in the ST1 User Manual.
@@ -35,6 +38,25 @@ class ST1Scale:
         
         self.is_connected = False
 
+    @staticmethod
+    def list_available_ports():
+        """
+        Lists all available serial ports on the system.
+        Useful for finding the correct COM port on Windows.
+        
+        Returns:
+            list: List of available serial ports with their descriptions.
+        """
+        ports = serial.tools.list_ports.comports()
+        available_ports = []
+        for port in ports:
+            available_ports.append({
+                'device': port.device,
+                'description': port.description,
+                'hwid': port.hwid
+            })
+        return available_ports
+
     def connect(self) -> bool:
         """
         Opens the serial port connection to the scale.
@@ -52,6 +74,10 @@ class ST1Scale:
             return True
         except serial.SerialException as e:
             print(f"Error: Could not connect to {self.port_name}. Details: {e}")
+            if platform.system() == "Windows":
+                print("Available COM ports:")
+                for port in self.list_available_ports():
+                    print(f"  {port['device']}: {port['description']}")
             self.is_connected = False
             return False
 
@@ -243,23 +269,36 @@ class ST1Scale:
 
 # --- Example Usage ---
 if __name__ == "__main__":
-    # Use pseudo-terminal - the sender will create the pair and show the slave port
-    # You need to update this with the actual slave port shown by the sender
-    SCALE_PORT = '/dev/pts/13'  # This will be updated by the sender
+    # Windows COM port - update this with your actual COM port
+    SCALE_PORT = 'COM3'  # Common Windows serial port, adjust as needed
     
     # IMPORTANT: Set this to match the format you configured in the scale's UF-6 menu.
     # For this example, we assume the scale is set to "232 2" (Stream output - Format 1).
     DATA_FORMAT_TO_TEST = 1 
 
+    print("=== ST1 Scale Reader for Windows ===")
+    print(f"Target COM port: {SCALE_PORT}")
+    
+    # Show available COM ports
+    print("\nAvailable COM ports:")
+    available_ports = ST1Scale.list_available_ports()
+    if available_ports:
+        for port in available_ports:
+            print(f"  {port['device']}: {port['description']}")
+    else:
+        print("  No COM ports found!")
+    
+    print(f"\nIf {SCALE_PORT} is not correct, please:")
+    print("1. Check Device Manager > Ports (COM & LPT)")
+    print("2. Update SCALE_PORT variable in this script")
+    print("3. Make sure your scale is connected and powered on")
+
     # Initialize the scale object
     scale = ST1Scale(port=SCALE_PORT, baudrate=9600, timeout=1)
 
     # Connect to the scale with retry loop
-    print(f"Attempting to connect to scale on {SCALE_PORT}...")
-    print("Waiting for sender to be ready...")
-    print("Make sure to run the sender script (serial_class_sender_mimcing.py) in another terminal.")
-    print("The sender will create a pseudo-terminal pair and show you the slave port to use.")
-    print("Update SCALE_PORT in this script with the slave port shown by the sender.")
+    print(f"\nAttempting to connect to scale on {SCALE_PORT}...")
+    print("For testing with simulator, run the Windows sender script first.")
     
     while True:
         if scale.connect():
@@ -273,7 +312,11 @@ if __name__ == "__main__":
                     parsed_data = scale.read_parsed_data(data_format=DATA_FORMAT_TO_TEST)
                     
                     if parsed_data: # Check if dictionary is not empty
-                        print(parsed_data['parsed_data'].get('value', 'No value'))
+                        if 'parsed_data' in parsed_data and parsed_data['parsed_data']:
+                            value = parsed_data['parsed_data'].get('value', 'No value')
+                            print(f"Weight: {value}")
+                        else:
+                            print(f"Raw data: {parsed_data}")
 
                     time.sleep(0.2) # Wait a bit before the next read
             
