@@ -55,15 +55,7 @@ Item {
     // Normal state (>30 seconds) - Blue gradient (uses existing theme colors)
     // uclaBlue, yinmnBlue, oxfordBlue2
 
-    // theme colors 2
-    readonly property color oxfordBlue: "#0C1936" // Darkest blue
-    readonly property color uclaBlue: "#4574AD" // Main blue
-    readonly property color oxfordBlue2: "#1B2437" // Medium blue
-    readonly property color oxfordBlue3: "#0D1D3C" // Light blue
-    readonly property color yinmnBlue: "#48536D" // Lightest blue
-
-    
-
+   
     
 
     
