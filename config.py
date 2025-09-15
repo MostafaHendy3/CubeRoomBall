@@ -32,7 +32,7 @@ class APIConfig:
 @dataclass
 class GameConfig:
     """Game configuration settings"""
-    timer_value: int = 15000  # Default timer value in milliseconds
+    timer_value: int = 15300  # Default timer value in milliseconds
     final_screen_timer: int = 15000  # Final screen display time
     ball_weight: int = 100
 
@@ -40,7 +40,7 @@ class GameConfig:
 class SerialConfig:
     """Serial communication configuration settings"""
     enabled: bool = True  # Enable/disable serial communication
-    port: str = "/dev/pts/9"  # Serial port
+    port: str = "/dev/pts/13"  # Serial port
     baudrate: int = 9600
     timeout: float = 1.0
 

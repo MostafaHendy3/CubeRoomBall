@@ -38,19 +38,21 @@ Item {
     readonly property color oxfordBlue3: "#0D1D3C" // Light blue
     readonly property color yinmnBlue: "#48536D" // Lightest blue
 
+
+    // readonly property color gradientColor1: Qt.rgba(0.08, 0.16, 0.29, 0.6) // #142849 with 60% alpha
+    // readonly property color gradientColor2: Qt.rgba(0.42, 0.21, 0.15, 0.6) // #6b3527 with 60% alpha
+    // readonly property color gradientColor3: Qt.rgba(0.71, 0.40, 0.23, 0.6) // #b5663b with 60% alpha
     // ========== GRADIENT COLORS FOR EASY MODIFICATION ==========
     // Critical state (≤5 seconds) - Red gradient
-    readonly property color criticalRed1: "#ff3333"
-    readonly property color criticalRed2: "#ff6b6b"
-    readonly property color criticalRed3: "#e74c3c"
+    readonly property color criticalRed1: Qt.rgba(0.42, 0.21, 0.15, 0.6)
     
     // Warning state (≤10 seconds) - Orange/Pink gradient
-    readonly property color warningOrange1: "#ff6b6b"
-    readonly property color warningOrange2: "#ff8e53"
-    readonly property color warningOrange3: "#ff6b9d"
-    
+    readonly property color warningOrange1: Qt.rgba(0.71, 0.40, 0.23, 0.6)
+    readonly property color warningOrange2: Qt.rgba(0.42, 0.21, 0.15, 0.4)
+    readonly property color warningOrange3: Qt.rgba(0.42, 0.21, 0.15, 0.2)
+
     // Transition state (≤30 seconds) - Orange/Blue gradient
-    readonly property color transitionOrange: "#f39c12"
+    readonly property color transitionOrange: Qt.rgba(0.42, 0.21, 0.15, 0.2)
     
     // Normal state (>30 seconds) - Blue gradient (uses existing theme colors)
     // uclaBlue, yinmnBlue, oxfordBlue2
@@ -279,7 +281,7 @@ Item {
                 } else if (timerSeconds <= 10) {
                     gradient.addColorStop(0, warningOrange1);
                     gradient.addColorStop(0.5, warningOrange2);
-                    gradient.addColorStop(1, "#ff6b9d");
+                    gradient.addColorStop(1, warningOrange3);
                 } else if (timerSeconds <= 30) {
                     gradient.addColorStop(0, transitionOrange);
                     gradient.addColorStop(0.5, uclaBlue);
@@ -336,9 +338,10 @@ Item {
             id: timerText
             text: formatTime(timerSeconds)
             font.family: customFontLoader.name
-            font.pixelSize: Math.max(24, 48 * scaleFactor)
+            font.pixelSize: Math.max(20, 40 * scaleFactor)
             font.bold: true
-            color: timerSeconds <= 10 ? uclaBlue : yinmnBlue
+            // color: timerSeconds <= 10 ? oxfordBlue2 : yinmnBlue
+            color: white
             anchors.centerIn: parent
             
             renderType: Text.NativeRendering
@@ -364,27 +367,27 @@ Item {
         }
 
         // Status text
-        Text {
-            id: statusText
-            text: isRunning ? "RUNNING - Press 'S' to Stop" : "READY - Press 'S' to Start"
-            font.family: customFontLoader.name
-            font.pixelSize: Math.max(8, 12 * scaleFactor)
-            font.bold: true
-            color: isRunning ? uclaBlue : yinmnBlue
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.top: timerText.bottom
-            anchors.topMargin: 10 * scaleFactor
+        // Text {
+        //     id: statusText
+        //     text: isRunning ? "RUNNING - Press 'S' to Stop" : "READY - Press 'S' to Start"
+        //     font.family: customFontLoader.name
+        //     font.pixelSize: Math.max(8, 12 * scaleFactor)
+        //     font.bold: true
+        //     color: isRunning ? uclaBlue : yinmnBlue
+        //     anchors.horizontalCenter: parent.horizontalCenter
+        //     anchors.top: timerText.bottom
+        //     anchors.topMargin: 10 * scaleFactor
             
-            renderType: Text.NativeRendering
-            antialiasing: true
+        //     renderType: Text.NativeRendering
+        //     antialiasing: true
             
-            SequentialAnimation on opacity {
-                loops: Animation.Infinite
-                running: isRunning
-                NumberAnimation { from: 0.7; to: 1.0; duration: 800 }
-                NumberAnimation { from: 1.0; to: 0.7; duration: 800 }
-            }
-        }
+        //     SequentialAnimation on opacity {
+        //         loops: Animation.Infinite
+        //         running: isRunning
+        //         NumberAnimation { from: 0.7; to: 1.0; duration: 800 }
+        //         NumberAnimation { from: 1.0; to: 0.7; duration: 800 }
+        //     }
+        // }
     }
 
     // ============= ANIMATIONS =============
@@ -419,7 +422,7 @@ Item {
                 to: {
                     if (timerSeconds <= 5) return criticalRed1;
                     else if (timerSeconds <= 10) return warningOrange1;
-                    else if (timerSeconds <= 30) return "#f39c12";
+                    else if (timerSeconds <= 30) return transitionOrange;
                     else return uclaBlue;
                 }
                 duration: 80

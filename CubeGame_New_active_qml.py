@@ -2093,14 +2093,14 @@ class Active_screen(QWidget):
                 self.circular_timer_backend.emit_timer_value()
                 
                 self.circular_timer_initialized = True
-                logger.debug("✅ Circular timer widget initialized successfully")
+                logger.debug(" Circular timer widget initialized successfully")
                 return True
             else:
-                logger.error("❌ Failed to get QML root object for circular timer")
+                logger.error(" Failed to get QML root object for circular timer")
                 return False
                 
         except Exception as e:
-            logger.error(f"❌ Error initializing circular timer widget: {e}")
+            logger.error(f" Error initializing circular timer widget: {e}")
             return False
     
     def reset_circular_timer(self):
@@ -2114,9 +2114,9 @@ class Active_screen(QWidget):
                 self.circular_timer_backend.set_timer(TimerValue // 1000)
                 self.circular_timer_backend.emit_timer_value()
                 
-                logger.debug("✅ Circular timer reset successfully")
+                logger.debug(" Circular timer reset successfully")
         except Exception as e:
-            logger.error(f"❌ Error resetting circular timer: {e}")
+            logger.error(f" Error resetting circular timer: {e}")
     
     @pyqtSlot(int)
     def on_score_updated(self, score):
@@ -2274,7 +2274,8 @@ class Active_screen(QWidget):
         # Team name label (original position - right side)
         self.Label_team_name = QtWidgets.QLabel(self.centralwidget)
         self.Label_team_name.setGeometry(QtCore.QRect(1089*self.scale, 378*self.scale, 557*self.scale, 122*self.scale))
-        self.Label_team_name.setText("teamName")
+        # self.Label_team_name.setText("teamName")
+        self.Label_team_name.setText(teamName)
         self.Label_team_name.setAlignment(QtCore.Qt.AlignCenter)
         font = QtGui.QFont()
         font.setPointSize(35*self.scale)
@@ -3795,14 +3796,14 @@ class MainApp(QtWidgets.QMainWindow):
         else:
             logger.warning("️  MQTT thread or GameManager not properly initialized for deactivate signal")
         # ------------------------------
-        # self.start_Home_screen()
+        self.start_Home_screen()
 
         """
         @comment: keep this for testing the game manager
         """
         # ------------------------------
-        self.start_Active_screen()
-        self.ui_active.start_game()
+        # self.start_Active_screen()
+        # self.ui_active.start_game()
         # ------------------------------
         # self.start_final_screen()
 
