@@ -2543,7 +2543,7 @@ class TeamMember_screen(QtWidgets.QMainWindow):
         self.frame_2.setGeometry(QtCore.QRect(558*self.scale, 327*self.scale, 802*self.scale, 595*self.scale))
         self.gridLayout = QtWidgets.QGridLayout(self.frame_2)
         self.LeaderboardTable = QtWidgets.QTableWidget(self.frame_2)
-        self.LeaderboardTable.setRowCount(5)
+        self.LeaderboardTable.setRowCount(4)
         self.LeaderboardTable.setColumnCount(1)
         
         # Set up table properties
@@ -2738,9 +2738,9 @@ class TeamMember_screen(QtWidgets.QMainWindow):
         # Calculate row heights for the table height (595px)
         # Total available height: 595px minus header and padding
         available_height = int(595 * self.scale - 100)  # Account for header and padding
-        row_height = int(available_height / 5)  # Distribute equally among 5 rows
+        row_height = int(available_height / 4)  # Distribute equally among 5 rows
         
-        for i in range(5):
+        for i in range(4):
             self.LeaderboardTable.verticalHeader().resizeSection(i, row_height)
         self.LeaderboardTable.verticalHeader().setStretchLastSection(True)
         
@@ -2768,7 +2768,7 @@ class TeamMember_screen(QtWidgets.QMainWindow):
         __sortingEnabled = self.LeaderboardTable.isSortingEnabled()
         self.LeaderboardTable.setSortingEnabled(False)
         global list_players_name
-        for i, player_name in enumerate(list_players_name[:5]):
+        for i, player_name in enumerate(list_players_name[:4]):
             if i < 5:
                 item = self.LeaderboardTable.item(i, 0)
                 item.setText(_translate("Home", player_name))
@@ -2795,7 +2795,7 @@ class TeamMember_screen(QtWidgets.QMainWindow):
         self.Label_team_name.setText(teamName)
         self.Label_team_name.show()
         global list_players_name
-        for i, player_name in enumerate(list_players_name[:5]):
+        for i, player_name in enumerate(list_players_name[:4]):
             if i < 5:
                 team_item = QtWidgets.QTableWidgetItem(player_name)
                 team_item.setTextAlignment(QtCore.Qt.AlignCenter)
