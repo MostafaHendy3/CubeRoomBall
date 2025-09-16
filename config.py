@@ -32,15 +32,16 @@ class APIConfig:
 @dataclass
 class GameConfig:
     """Game configuration settings"""
-    timer_value: int = 15300  # Default timer value in milliseconds
-    final_screen_timer: int = 15000  # Final screen display time
-    ball_weight: int = 100
+    timer_value: int = 120300  # Default timer value in milliseconds
+    final_screen_timer: int = 5000  # Final screen display time
+    ball_weight: float = 7.5
 
 @dataclass
 class SerialConfig:
     """Serial communication configuration settings"""
     enabled: bool = True  # Enable/disable serial communication
-    port: str = "/dev/pts/13"  # Serial port
+  #  port: str = "/dev/pts/13"  # Serial port
+    port: str = 'COM21'  # Serial port
     baudrate: int = 9600
     timeout: float = 1.0
 
@@ -97,7 +98,7 @@ class Settings:
         game_config = GameConfig(
             timer_value=int(os.getenv('CAGE_TIMER_VALUE', GameConfig.timer_value)),
             final_screen_timer=int(os.getenv('CAGE_FINAL_TIMER', GameConfig.final_screen_timer)),
-            ball_weight=int(os.getenv('CAGE_BALL_WEIGHT', GameConfig.ball_weight)),
+            ball_weight=os.getenv('CAGE_BALL_WEIGHT', GameConfig.ball_weight),
         )
         
         # Load MQTT settings

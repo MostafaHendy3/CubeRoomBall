@@ -125,7 +125,7 @@ def get_user_com_port_config():
     print("-" * 30)
     
     # List available ports
-    available_ports = list_available_com_ports()
+   # available_ports = list_available_com_ports()
     
     # Get sender port
     while True:

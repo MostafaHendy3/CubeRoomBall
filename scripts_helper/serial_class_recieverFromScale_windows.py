@@ -270,11 +270,11 @@ class ST1Scale:
 # --- Example Usage ---
 if __name__ == "__main__":
     # Windows COM port - update this with your actual COM port
-    SCALE_PORT = 'COM3'  # Common Windows serial port, adjust as needed
+    SCALE_PORT = 'COM21'  # Common Windows serial port, adjust as needed
     
     # IMPORTANT: Set this to match the format you configured in the scale's UF-6 menu.
     # For this example, we assume the scale is set to "232 2" (Stream output - Format 1).
-    DATA_FORMAT_TO_TEST = 1 
+    DATA_FORMAT_TO_TEST = 2
 
     print("=== ST1 Scale Reader for Windows ===")
     print(f"Target COM port: {SCALE_PORT}")

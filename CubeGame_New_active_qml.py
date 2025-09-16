@@ -154,7 +154,6 @@ def set_cube_balls_count(count):
     cube_balls_count = max(0, min(15, count))  # Clamp between 0 and 15
     print(f"Cube balls count set to: {cube_balls_count}")
 
-
 class ST1ScaleThread(QThread):
     """
     Threaded ST1 Weighing Scale class that combines serial communication and threading
@@ -446,10 +445,10 @@ class ST1ScaleThread(QThread):
                 if self.is_connected:
                     # Read data from scale
                     scale_data = self.read_parsed_data(self.data_format)
-                    
+                    logger.info(f"Scale_data: {scale_data}")
                     if scale_data and 'parsed_data' in scale_data and scale_data['parsed_data']:
                         parsed_data = scale_data['parsed_data']
-                        
+                        logger.info(f"parsed_data: {parsed_data}")
                         # Emit the raw scale data
                         self.scale_data_received.emit(scale_data)
                         
@@ -461,8 +460,11 @@ class ST1ScaleThread(QThread):
                             value = parsed_data['column2']
                         
                         if value is not None:
-                            score = int(abs(value))
-                            self.score_updated.emit(score)
+                            logger.info(f"weight = {abs(value*1000)}g")
+                            logger.info(f"Ball weight  = {game_config.ball_weight}g")
+                            score = (abs(value*1000) / game_config.ball_weight)
+                            logger.info(f"Score = {round(score)}")
+                            self.score_updated.emit(round(score))
                 
                 # Sleep for a short time to prevent excessive CPU usage
                 self.msleep(200)  # 200ms = 5 readings per second
@@ -2456,7 +2458,7 @@ class Active_screen(QWidget):
             self.deactivate_timer.stop()
             self.deactivate_timer = None
         
-        self.label_Score.setText("Score: "+str(scored))
+        self.label_Score.setText("Score: "+str(int(scored)))
         self.TimerGame.stop()
         self.timer_one_second.stop()
         
@@ -3828,7 +3830,7 @@ class MainApp(QtWidgets.QMainWindow):
         global list_players_score, list_players_name, scored, serial_scoring_active
         list_players_score = [0,0,0,0,0]
         list_players_name.clear()
-        scored = 0
+        scored = 0.0
         serial_scoring_active = False
         
         # Initialize home screen with error handling
