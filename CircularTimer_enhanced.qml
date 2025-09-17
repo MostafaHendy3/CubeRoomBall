@@ -37,25 +37,25 @@ Item {
     readonly property color oxfordBlue2: "#1B2437" // Medium blue
     readonly property color oxfordBlue3: "#0D1D3C" // Light blue
     readonly property color yinmnBlue: "#48536D" // Lightest blue
+    readonly property color lightBlue: "#b3dcff" // Light purple-red closer to blue for last 10 seconds
+    // readonly property color urgencyRed: "#df7466" // Light purple-red closer to blue for last 10 seconds
+    // red 2 
+    readonly property color urgencyRed: "#bd4e45" // Light purple-red closer to blue for last 10 seconds
 
 
     // readonly property color gradientColor1: Qt.rgba(0.08, 0.16, 0.29, 0.6) // #142849 with 60% alpha
     // readonly property color gradientColor2: Qt.rgba(0.42, 0.21, 0.15, 0.6) // #6b3527 with 60% alpha
     // readonly property color gradientColor3: Qt.rgba(0.71, 0.40, 0.23, 0.6) // #b5663b with 60% alpha
     // ========== GRADIENT COLORS FOR EASY MODIFICATION ==========
-    // Critical state (≤5 seconds) - Red gradient
-    readonly property color criticalRed1: Qt.rgba(0.42, 0.21, 0.15, 0.6)
+    // All states: Moving gradient effects with color variations
+    // - ≤10 seconds: Light purple gradient (#B3B3FF) for urgency
+    // - >10 seconds: Blue gradient (uclaBlue) for normal state
+    // - Main progress circle: Flowing linear gradient
+    // - Inner highlight: Moving gradient with lighter tones
+    // - Progress dot: Radial gradient with enhanced variations
+    // - Ripple effects: Color-coordinated with main theme
+    // - Background ring: Matches main color scheme
     
-    // Warning state (≤10 seconds) - Orange/Pink gradient
-    readonly property color warningOrange1: Qt.rgba(0.71, 0.40, 0.23, 0.6)
-    readonly property color warningOrange2: Qt.rgba(0.42, 0.21, 0.15, 0.4)
-    readonly property color warningOrange3: Qt.rgba(0.42, 0.21, 0.15, 0.2)
-
-    // Transition state (≤30 seconds) - Orange/Blue gradient
-    readonly property color transitionOrange: Qt.rgba(0.42, 0.21, 0.15, 0.2)
-    
-    // Normal state (>30 seconds) - Blue gradient (uses existing theme colors)
-    // uclaBlue, yinmnBlue, oxfordBlue2
 
    
     
@@ -150,7 +150,7 @@ Item {
             anchors.fill: parent
             radius: width / 2
             color: "transparent"
-            border.color:  uclaBlue
+            border.color: timerSeconds <= 10 ? urgencyRed : uclaBlue
             border.width: Math.max(6, 8 * scaleFactor)
             opacity: 0.3
             
@@ -167,7 +167,9 @@ Item {
             border.width: Math.max(2, 3 * scaleFactor)
             opacity: 0
             
-            border.color: timerSeconds <= 10 ? warningOrange1 : uclaBlue
+            border.color: timerSeconds <= 10 ? urgencyRed : uclaBlue
+            
+            Behavior on border.color { ColorAnimation { duration: 300 } }
         }
         
         Rectangle {
@@ -179,7 +181,9 @@ Item {
             border.width: Math.max(2, 3 * scaleFactor)
             opacity: 0
             
-            border.color: timerSeconds <= 10 ? warningOrange2 : yinmnBlue
+            border.color: timerSeconds <= 10 ? Qt.lighter(urgencyRed, 1.2) : yinmnBlue
+            
+            Behavior on border.color { ColorAnimation { duration: 300 } }
         }
         
         Rectangle {
@@ -191,7 +195,9 @@ Item {
             border.width: Math.max(2, 3 * scaleFactor)
             opacity: 0
             
-            border.color: timerSeconds <= 10 ? warningOrange3 : oxfordBlue2
+            border.color: timerSeconds <= 10 ? Qt.darker(urgencyRed, 1.1) : oxfordBlue2
+            
+            Behavior on border.color { ColorAnimation { duration: 300 } }
         }
 
         // Enhanced progress circle
@@ -199,7 +205,7 @@ Item {
             id: progressCanvas
             anchors.fill: parent
             
-            property real glowIntensity: isRunning ? (timerSeconds <= 10 ? 1.0 : 0.6) : 0.3
+            property real glowIntensity: isRunning ? 0.6 : 0.3
             property real pulseScale: 1.0
             
             transform: [
@@ -260,11 +266,7 @@ Item {
                     ctx.beginPath();
                     ctx.arc(centerX, centerY, radius + (6 * scaleFactor), startAngle, startAngle + progressAngle);
                     ctx.lineWidth = Math.max(8, 12 * scaleFactor);
-                    if (timerSeconds <= 10) {
-                        ctx.strokeStyle = Qt.rgba(1, 0.4, 0.4, glowIntensity * 0.5);
-                    } else {
-                        ctx.strokeStyle = Qt.rgba(0.27, 0.45, 0.68, glowIntensity * 0.4);
-                    }
+                    ctx.strokeStyle = Qt.rgba(0.27, 0.45, 0.68, glowIntensity * 0.4);
                     ctx.stroke();
                 }
                 
@@ -274,23 +276,34 @@ Item {
                     centerX + radius, centerY + radius
                 );
                 
-                if (timerSeconds <= 5) {
-                    gradient.addColorStop(0, criticalRed1);
-                    gradient.addColorStop(0.5, warningOrange1);
-                    gradient.addColorStop(1, warningOrange3);
-                } else if (timerSeconds <= 10) {
-                    gradient.addColorStop(0, warningOrange1);
-                    gradient.addColorStop(0.5, warningOrange2);
-                    gradient.addColorStop(1, warningOrange3);
-                } else if (timerSeconds <= 30) {
-                    gradient.addColorStop(0, transitionOrange);
-                    gradient.addColorStop(0.5, uclaBlue);
-                    gradient.addColorStop(1, yinmnBlue);
+                // Moving gradient effect for all states
+                var time = Date.now() * 0.001; // Current time in seconds
+                var gradientOffset = (time * 0.8) % 1.0; // Moving offset (0-1) - faster movement
+                
+                // Create a moving gradient with color variations based on timer state
+                var baseColor, lighterColor, darkerColor, midColor;
+                
+                if (timerSeconds <= 10) {
+                    // Red gradient for last 10 seconds - complementary to blue theme
+                    baseColor = urgencyRed; // Soft red that complements blue
+                    lighterColor = Qt.lighter(baseColor, 1.4);
+                    darkerColor = Qt.darker(baseColor, 1.3);
+                    midColor = Qt.lighter(baseColor, 1.1);
                 } else {
-                    gradient.addColorStop(0, uclaBlue);
-                    gradient.addColorStop(0.5, yinmnBlue);
-                    gradient.addColorStop(1, oxfordBlue2);
+                    // Blue gradient for normal states
+                    baseColor = uclaBlue;
+                    lighterColor = Qt.lighter(baseColor, 1.4);
+                    darkerColor = Qt.darker(baseColor, 1.3);
+                    midColor = Qt.lighter(baseColor, 1.1);
                 }
+                
+                // Add color stops with moving positions for a flowing effect
+                gradient.addColorStop((gradientOffset + 0.0) % 1.0, lighterColor);
+                gradient.addColorStop((gradientOffset + 0.2) % 1.0, baseColor);
+                gradient.addColorStop((gradientOffset + 0.4) % 1.0, midColor);
+                gradient.addColorStop((gradientOffset + 0.6) % 1.0, darkerColor);
+                gradient.addColorStop((gradientOffset + 0.8) % 1.0, baseColor);
+                gradient.addColorStop((gradientOffset + 1.0) % 1.0, lighterColor);
                 
                 // Main progress arc
                 ctx.beginPath();
@@ -300,36 +313,105 @@ Item {
                 ctx.lineCap = "round";
                 ctx.stroke();
                 
-                // Inner highlight
+                // Inner highlight with moving gradient
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius, startAngle, startAngle + progressAngle);
                 ctx.lineWidth = Math.max(6, 10 * scaleFactor);
-                var shineAlpha = timerSeconds <= 10 ? 0.8 : 0.5;
-                ctx.strokeStyle = Qt.rgba(1, 1, 1, shineAlpha * glowIntensity);
+                
+                // Create moving gradient for inner highlight
+                var highlightGradient = ctx.createLinearGradient(
+                    centerX - radius, centerY - radius, 
+                    centerX + radius, centerY + radius
+                );
+                
+                var highlightOffset = (time * 1.2) % 1.0; // Slightly faster movement for highlight
+                var highlightBaseColor, highlightLighterColor, highlightDarkerColor;
+                
+                if (timerSeconds <= 10) {
+                    // Red highlight for last 10 seconds
+                    highlightBaseColor = Qt.lighter(urgencyRed, 1.6);
+                    highlightLighterColor = Qt.lighter(highlightBaseColor, 1.3);
+                    highlightDarkerColor = Qt.darker(highlightBaseColor, 1.2);
+                } else {
+                    // Blue highlight for normal states
+                    highlightBaseColor = Qt.lighter(uclaBlue, 1.6);
+                    highlightLighterColor = Qt.lighter(highlightBaseColor, 1.3);
+                    highlightDarkerColor = Qt.darker(highlightBaseColor, 1.2);
+                }
+                
+                highlightGradient.addColorStop((highlightOffset + 0.0) % 1.0, highlightLighterColor);
+                highlightGradient.addColorStop((highlightOffset + 0.3) % 1.0, highlightBaseColor);
+                highlightGradient.addColorStop((highlightOffset + 0.6) % 1.0, highlightDarkerColor);
+                highlightGradient.addColorStop((highlightOffset + 0.9) % 1.0, highlightBaseColor);
+                
+                ctx.strokeStyle = highlightGradient;
                 ctx.lineCap = "round";
                 ctx.stroke();
                 
-                // Progress indicator dot
+                // Progress indicator dot with moving gradient
                 if (progressAngle > 0.1) {
                     var dotX = centerX + radius * Math.cos(startAngle + progressAngle);
                     var dotY = centerY + radius * Math.sin(startAngle + progressAngle);
                     
-                    // Outer dot glow
+                    // Create moving gradient for dot
+                    var dotGradient = ctx.createRadialGradient(
+                        dotX - Math.max(3, 5 * scaleFactor), dotY - Math.max(3, 5 * scaleFactor), 0,
+                        dotX, dotY, Math.max(6, 10 * scaleFactor)
+                    );
+                    
+                    var dotOffset = (time * 1.5) % 1.0; // Fast movement for dot
+                    var dotBaseColor, dotLighterColor, dotDarkerColor, dotCenterColor;
+                    
+                    if (timerSeconds <= 10) {
+                        // Red dot for last 10 seconds
+                        dotBaseColor = urgencyRed;
+                        dotLighterColor = Qt.lighter(dotBaseColor, 1.5);
+                        dotDarkerColor = Qt.darker(dotBaseColor, 1.3);
+                        dotCenterColor = Qt.lighter(dotBaseColor, 1.2);
+                    } else {
+                        // Blue dot for normal states
+                        dotBaseColor = uclaBlue;
+                        dotLighterColor = Qt.lighter(dotBaseColor, 1.5);
+                        dotDarkerColor = Qt.darker(dotBaseColor, 1.3);
+                        dotCenterColor = Qt.lighter(dotBaseColor, 1.2);
+                    }
+                    
+                    // Create radial gradient with moving colors
+                    dotGradient.addColorStop(0.0, dotLighterColor);
+                    dotGradient.addColorStop(0.3, dotCenterColor);
+                    dotGradient.addColorStop(0.7, dotBaseColor);
+                    dotGradient.addColorStop(1.0, dotDarkerColor);
+                    
+                    // Outer dot with moving gradient
                     ctx.beginPath();
                     ctx.arc(dotX, dotY, Math.max(6, 10 * scaleFactor), 0, 2 * Math.PI);
-                    ctx.fillStyle = Qt.rgba(1, 1, 1, 0.6 * glowIntensity);
+                    ctx.fillStyle = dotGradient;
                     ctx.fill();
                     
-                    // Inner dot
+                    // Inner dot with enhanced color
                     ctx.beginPath();
                     ctx.arc(dotX, dotY, Math.max(3, 5 * scaleFactor), 0, 2 * Math.PI);
-                    if (timerSeconds <= 10) {
-                        ctx.fillStyle = warningOrange1;
-                    } else {
-                        ctx.fillStyle = uclaBlue;
-                    }
+                    ctx.fillStyle = Qt.lighter(dotBaseColor, 1.4);
+                    ctx.fill();
+                    
+                    // Add a small white highlight for extra shine
+                    ctx.beginPath();
+                    ctx.arc(dotX - Math.max(1, 2 * scaleFactor), dotY - Math.max(1, 2 * scaleFactor), 
+                           Math.max(1, 2 * scaleFactor), 0, 2 * Math.PI);
+                    ctx.fillStyle = Qt.rgba(1, 1, 1, 0.8);
                     ctx.fill();
                 }
+            }
+        }
+
+        // Timer for moving gradient animation (active for all states)
+        Timer {
+            id: gradientAnimationTimer
+            interval: 50 // Update every 50ms for smooth animation
+            running: isRunning
+            repeat: true
+            onTriggered: {
+                progressCanvas.requestPaint();
             }
         }
 
@@ -341,7 +423,8 @@ Item {
             font.pixelSize: Math.max(20, 40 * scaleFactor)
             font.bold: true
             // color: timerSeconds <= 10 ? oxfordBlue2 : yinmnBlue
-            color: "white"
+            // color: timerSeconds <= 10 ? urgencyRed : lightBlue
+            color: timerSeconds <= 10 ? urgencyRed : Qt.lighter(uclaBlue, 1.5)
             anchors.centerIn: parent
             
             renderType: Text.NativeRendering
@@ -401,15 +484,15 @@ Item {
                 target: textScale
                 properties: "xScale,yScale"
                 from: 1.0
-                to: timerSeconds <= 10 ? 1.3 : 1.2
-                duration: timerSeconds <= 10 ? 100 : 150
+                to: 1.2
+                duration: 150
                 easing.type: Easing.OutQuad
             }
             NumberAnimation {
                 target: textScale
                 properties: "xScale,yScale"
                 to: 1.0
-                duration: timerSeconds <= 10 ? 200 : 250
+                duration: 250
                 easing.type: Easing.OutElastic
             }
         }
@@ -420,9 +503,7 @@ Item {
                 property: "color"
                 from: "white"
                 to: {
-                    if (timerSeconds <= 5) return criticalRed1;
-                    else if (timerSeconds <= 10) return warningOrange1;
-                    else if (timerSeconds <= 30) return transitionOrange;
+                    if (timerSeconds <= 30) return uclaBlue;
                     else return uclaBlue;
                 }
                 duration: 80
@@ -440,7 +521,7 @@ Item {
                 target: textRotation
                 property: "angle"
                 from: 0
-                to: timerSeconds <= 10 ? (Math.random() > 0.5 ? 6 : -6) : 3
+                to: 3
                 duration: 100
             }
             NumberAnimation {
@@ -459,22 +540,22 @@ Item {
         
         // First ripple
         SequentialAnimation {
-            PauseAnimation { duration: timerSeconds <= 10 ? 0 : 0 }
+            PauseAnimation { duration: 0 }
             ParallelAnimation {
                 NumberAnimation {
                     target: ripple1
                     properties: "width,height"
                     from: 0
-                    to: timerSize * (1.0 + (timerSeconds <= 10 ? 0.2 : 0))
-                    duration: timerSeconds <= 10 ? 600 : 800
+                    to: timerSize * 1.0
+                    duration: 800
                     easing.type: Easing.OutCubic
                 }
                 NumberAnimation {
                     target: ripple1
                     property: "opacity"
-                    from: timerSeconds <= 10 ? 0.9 : 0.7
+                    from: 0.7
                     to: 0
-                    duration: timerSeconds <= 10 ? 600 : 800
+                    duration: 800
                     easing.type: Easing.OutQuad
                 }
             }
@@ -487,22 +568,22 @@ Item {
         
         // Second ripple
         SequentialAnimation {
-            PauseAnimation { duration: timerSeconds <= 10 ? 80 : 120 }
+            PauseAnimation { duration: 120 }
             ParallelAnimation {
                 NumberAnimation {
                     target: ripple2
                     properties: "width,height"
                     from: 0
-                    to: timerSize * (1.15 + (timerSeconds <= 10 ? 0.2 : 0))
-                    duration: timerSeconds <= 10 ? 600 : 800
+                    to: timerSize * 1.15
+                    duration: 800
                     easing.type: Easing.OutCubic
                 }
                 NumberAnimation {
                     target: ripple2
                     property: "opacity"
-                    from: timerSeconds <= 10 ? 0.9 : 0.7
+                    from: 0.7
                     to: 0
-                    duration: timerSeconds <= 10 ? 600 : 800
+                    duration: 800
                     easing.type: Easing.OutQuad
                 }
             }
@@ -515,22 +596,22 @@ Item {
         
         // Third ripple
         SequentialAnimation {
-            PauseAnimation { duration: timerSeconds <= 10 ? 160 : 240 }
+            PauseAnimation { duration: 240 }
             ParallelAnimation {
                 NumberAnimation {
                     target: ripple3
                     properties: "width,height"
                     from: 0
-                    to: timerSize * (1.3 + (timerSeconds <= 10 ? 0.2 : 0))
-                    duration: timerSeconds <= 10 ? 600 : 800
+                    to: timerSize * 1.3
+                    duration: 800
                     easing.type: Easing.OutCubic
                 }
                 NumberAnimation {
                     target: ripple3
                     property: "opacity"
-                    from: timerSeconds <= 10 ? 0.9 : 0.7
+                    from: 0.7
                     to: 0
-                    duration: timerSeconds <= 10 ? 600 : 800
+                    duration: 800
                     easing.type: Easing.OutQuad
                 }
             }
