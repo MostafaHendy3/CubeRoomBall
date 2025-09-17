@@ -2354,6 +2354,10 @@ class Active_screen(QWidget):
         # Raise elements to proper layer order
         self.Background.setObjectName("Background")
         self.Background.raise_()
+        self.Label_team_name.raise_()
+        self.label_Score.raise_()
+        self.label_timer.raise_()
+        
         # self.cube_widget.raise_()
         
         # Initialize circular timer widget safely
@@ -2372,9 +2376,6 @@ class Active_screen(QWidget):
         except Exception as e:
             logger.error(f"Error initializing circular timer widget in setupUi: {e}")
             
-        self.Label_team_name.raise_()
-        self.label_Score.raise_()
-        self.label_timer.raise_()
         
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -3808,8 +3809,8 @@ class MainApp(QtWidgets.QMainWindow):
         # ------------------------------
         audio_files = {
             'continuous': 'Assets/mp3/2066.wav',
-            'inactive_game': 'Assets/mp3/game-music-loop.mp3',
-            'active_game': 'Assets/mp3/2066.wav'
+            'inactive_game': 'Assets/mp3/game-music-loop-inactive.mp3',
+            'active_game': 'Assets/mp3/game-music-loop-active.mp3'
         }
         
         self.audio_thread = AudioServiceThread(audio_files)
@@ -4157,6 +4158,8 @@ class MainApp(QtWidgets.QMainWindow):
             try:
                 # Ensure MQTT thread is initialized (in case it was cleaned up previously)
                 self.ui_active.init_mqtt_thread()
+                self.ui_active.setupUi(self.mainWindow)
+
                  # Connect deactivate signal to trigger score submission (with safety check)
                 if (hasattr(self.ui_active, 'mqtt_thread') and hasattr(self.ui_active.mqtt_thread, 'deactivate_signal') and
                     hasattr(self, 'game_manager') and self.game_manager):
@@ -4166,7 +4169,6 @@ class MainApp(QtWidgets.QMainWindow):
                 else:
                     logger.warning("️  MQTT thread or GameManager not properly initialized for deactivate signal")
 
-                self.ui_active.setupUi(self.mainWindow)
             except Exception as e:
                 logger.error(f" Error setting up active screen: {e}")
                 return
