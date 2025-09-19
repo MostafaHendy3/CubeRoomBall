@@ -2077,19 +2077,35 @@ class Active_screen(QWidget):
             self.circular_timer_widget.setAttribute(Qt.WA_TranslucentBackground, True)
             self.circular_timer_widget.setResizeMode(QQuickWidget.SizeRootObjectToView)
             
-            # Set the timer size and position (center-right area)
-            timer_size = int(800 * self.scale)
+            # Set the timer size and position (center-right area) with enhanced scaling
+            base_timer_size = 800
+            timer_size = int(base_timer_size * self.scale)
+            
+            # Calculate responsive positioning based on screen size
+            screen_width = self.centralwidget.width()
+            screen_height = self.centralwidget.height()
+            
+            # Position timer responsively - adjust based on screen size
+            x_position = int(200 * self.scale)  # Base position from left
+            y_position = int(160 * self.scale)  # Base position from top
+            
+            # For very wide screens, position timer more towards the center-right
+            if screen_width >= 3840:
+                x_position = int(screen_width * 0.15)  # 15% from left edge
+                y_position = int(screen_height * 0.15)  # 15% from top
+            elif screen_width >= 2560:
+                x_position = int(screen_width * 0.12)  # 12% from left edge  
+                y_position = int(screen_height * 0.15)  # 15% from top
+                
             self.circular_timer_widget.setGeometry(QtCore.QRect(
-                int(200 * self.scale),  # Position on the right side
-                int(160 * self.scale),   # Vertical center
-                timer_size+200,
+                x_position,
+                y_position,
+                timer_size + int(200 * self.scale),  # Add padding scaled appropriately
                 timer_size 
             ))
             
             # Load the CircularTimer QML file
             qml_file_path = os.path.join(os.path.dirname(__file__), 'CircularTimer_enhanced.qml')
-            # CircularTimerStyled
-            # qml_file_path = os.path.join(os.path.dirname(__file__), 'CircularTimerStyled_5.qml')
             self.circular_timer_widget.setSource(QUrl.fromLocalFile(qml_file_path))
             
             # Set up the backend connection
@@ -3485,26 +3501,26 @@ class Home_screen(QtWidgets.QMainWindow):
         # Set default data
         __sortingEnabled = self.LeaderboardTable.isSortingEnabled()
         self.LeaderboardTable.setSortingEnabled(False)
-        item = self.LeaderboardTable.item(0, 0)
-        item.setText(_translate("Home", "Team 1"))
-        item = self.LeaderboardTable.item(0, 1)
-        item.setText(_translate("Home", "5"))
-        item = self.LeaderboardTable.item(1, 0)
-        item.setText(_translate("Home", "Team 2"))
-        item = self.LeaderboardTable.item(1, 1)
-        item.setText(_translate("Home", "6"))
-        item = self.LeaderboardTable.item(2, 0)
-        item.setText(_translate("Home", "Team 3"))
-        item = self.LeaderboardTable.item(2, 1)
-        item.setText(_translate("Home", "548"))
-        item = self.LeaderboardTable.item(3, 0)
-        item.setText(_translate("Home", "Team 5"))
-        item = self.LeaderboardTable.item(3, 1)
-        item.setText(_translate("Home", "2"))
-        item = self.LeaderboardTable.item(4, 0)
-        item.setText(_translate("Home", "Team 55"))
-        item = self.LeaderboardTable.item(4, 1)
-        item.setText(_translate("Home", "55"))
+        # item = self.LeaderboardTable.item(0, 0)
+        # item.setText(_translate("Home", "Team 1"))
+        # item = self.LeaderboardTable.item(0, 1)
+        # item.setText(_translate("Home", "5"))
+        # item = self.LeaderboardTable.item(1, 0)
+        # item.setText(_translate("Home", "Team 2"))
+        # item = self.LeaderboardTable.item(1, 1)
+        # item.setText(_translate("Home", "6"))
+        # item = self.LeaderboardTable.item(2, 0)
+        # item.setText(_translate("Home", "Team 3"))
+        # item = self.LeaderboardTable.item(2, 1)
+        # item.setText(_translate("Home", "548"))
+        # item = self.LeaderboardTable.item(3, 0)
+        # item.setText(_translate("Home", "Team 5"))
+        # item = self.LeaderboardTable.item(3, 1)
+        # item.setText(_translate("Home", "2"))
+        # item = self.LeaderboardTable.item(4, 0)
+        # item.setText(_translate("Home", "Team 55"))
+        # item = self.LeaderboardTable.item(4, 1)
+        # item.setText(_translate("Home", "55"))
         self.LeaderboardTable.setSortingEnabled(__sortingEnabled)
     
     def showTable(self):
@@ -3821,7 +3837,7 @@ class MainApp(QtWidgets.QMainWindow):
         self.audio_thread.player_state_changed.connect(
             lambda name, state: print(f"Player {name} state: {state}")
         )
-        self.start_Home_screen()
+        # self.start_Home_screen()
 
          # Create audio service thread
         
@@ -3876,7 +3892,7 @@ class MainApp(QtWidgets.QMainWindow):
         global list_players_score, list_players_name, scored, serial_scoring_active
         list_players_score = [0,0,0,0,0]
         list_players_name.clear()
-        scored = 0.0
+        scored = 0
         serial_scoring_active = False
         
         # Initialize home screen with error handling
@@ -4146,13 +4162,6 @@ class MainApp(QtWidgets.QMainWindow):
         self.audio_thread.stop_inactive_game_sound()
         self.audio_thread.play_active_game_sound()
         
-        # Safely close home screen
-        if hasattr(self, 'ui_home') and self.ui_home:
-            try:
-                self.ui_home.close()
-            except Exception as e:
-                logger.warning(f"️  Error closing home screen: {e}")
-        
         # Initialize active screen with error handling
         if hasattr(self, 'ui_active') and self.ui_active:
             try:
@@ -4175,6 +4184,12 @@ class MainApp(QtWidgets.QMainWindow):
         else:
             logger.error(" ui_active not properly initialized")
             return
+        # Safely close home screen
+        if hasattr(self, 'ui_home') and self.ui_home:
+            try:
+                self.ui_home.close()
+            except Exception as e:
+                logger.warning(f"️  Error closing home screen: {e}")
         
         quit_shortcut = QtWidgets.QShortcut(QtGui.QKeySequence('q'), self.mainWindow)
         quit_shortcut.activated.connect(self.close_application)
@@ -4187,7 +4202,7 @@ class MainApp(QtWidgets.QMainWindow):
             self._close_current_screen()
             self.audio_thread.stop_continuous_sound()
             self.audio_thread.stop_active_game_sound()
-            self.audio_thread.stop_inactive_game_sound()
+            self.audio_thread.play_inactive_game_sound()
             
             # Setup and show final screen
             self.ui_final.setupUi(self.mainWindow)

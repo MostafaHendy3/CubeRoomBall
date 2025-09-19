@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import QtQuick.Window 2.15
 
 Item {
     id: root
@@ -21,8 +22,22 @@ Item {
     
     // Internal properties
     property int previousSeconds: 60
-    property real scaleFactor: Math.min(width / 400, height / 400)
-    property real timerSize: Math.min(width * 0.8, height * 0.8, 500)
+    
+    // Enhanced scaling properties for better 4K support
+    property real baseSize: 400  // Base reference size
+    property real scaleFactor: Math.min(width / baseSize, height / baseSize)
+    property real timerSize: Math.min(width * 0.75, height * 0.75)  // More responsive to container size
+    
+    // Screen-aware scaling for different resolutions
+    property real screenScale: {
+        // var screenWidth = Screen.width || 1920  // Fallback to 1920 if Screen not available
+        // 4k test
+        // var screenWidth = 3840
+        if (screenWidth >= 3840) return 1.3      // 4K - more reasonable scaling
+        else if (screenWidth >= 2560) return 1.2  // 1440p
+        else if (screenWidth >= 1920) return 1.0  // 1080p
+        else return 0.8                           // Lower resolutions
+    }
     
     // // Color theme - your specified palette
     // readonly property color oxfordBlue: "#0C1936"
@@ -151,7 +166,7 @@ Item {
             radius: width / 2
             color: "transparent"
             border.color: timerSeconds <= 10 ? urgencyRed : uclaBlue
-            border.width: Math.max(6, 8 * scaleFactor)
+            border.width: Math.max(4, 6 * scaleFactor)
             opacity: 0.3
             
             Behavior on border.color { ColorAnimation { duration: 300 } }
@@ -250,22 +265,22 @@ Item {
                 
                 var centerX = width / 2;
                 var centerY = height / 2;
-                var radius = (width - (24 * scaleFactor)) / 2;
+                var radius = (width - (20 * scaleFactor)) / 2;
                 var startAngle = -Math.PI / 2;
                 var progressAngle = (progressValue / 100) * 2 * Math.PI;
                 
                 // Background track
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-                ctx.lineWidth = Math.max(12, 18 * scaleFactor);
+                ctx.lineWidth = Math.max(8, 12 * scaleFactor);
                 ctx.strokeStyle = Qt.rgba(0.1, 0.1, 0.2, 0.3);
                 ctx.stroke();
                 
                 // Outer glow
                 if (glowIntensity > 0) {
                     ctx.beginPath();
-                    ctx.arc(centerX, centerY, radius + (6 * scaleFactor), startAngle, startAngle + progressAngle);
-                    ctx.lineWidth = Math.max(8, 12 * scaleFactor);
+                    ctx.arc(centerX, centerY, radius + (4 * scaleFactor), startAngle, startAngle + progressAngle);
+                    ctx.lineWidth = Math.max(6, 8 * scaleFactor);
                     ctx.strokeStyle = Qt.rgba(0.27, 0.45, 0.68, glowIntensity * 0.4);
                     ctx.stroke();
                 }
@@ -308,7 +323,7 @@ Item {
                 // Main progress arc
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius, startAngle, startAngle + progressAngle);
-                ctx.lineWidth = Math.max(16, 24 * scaleFactor);
+                ctx.lineWidth = Math.max(12, 18 * scaleFactor);
                 ctx.strokeStyle = gradient;
                 ctx.lineCap = "round";
                 ctx.stroke();
@@ -316,7 +331,7 @@ Item {
                 // Inner highlight with moving gradient
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, radius, startAngle, startAngle + progressAngle);
-                ctx.lineWidth = Math.max(6, 10 * scaleFactor);
+                ctx.lineWidth = Math.max(4, 6 * scaleFactor);
                 
                 // Create moving gradient for inner highlight
                 var highlightGradient = ctx.createLinearGradient(
@@ -355,8 +370,8 @@ Item {
                     
                     // Create moving gradient for dot
                     var dotGradient = ctx.createRadialGradient(
-                        dotX - Math.max(3, 5 * scaleFactor), dotY - Math.max(3, 5 * scaleFactor), 0,
-                        dotX, dotY, Math.max(6, 10 * scaleFactor)
+                        dotX - Math.max(2, 3 * scaleFactor), dotY - Math.max(2, 3 * scaleFactor), 0,
+                        dotX, dotY, Math.max(4, 6 * scaleFactor)
                     );
                     
                     var dotOffset = (time * 1.5) % 1.0; // Fast movement for dot
@@ -384,20 +399,20 @@ Item {
                     
                     // Outer dot with moving gradient
                     ctx.beginPath();
-                    ctx.arc(dotX, dotY, Math.max(6, 10 * scaleFactor), 0, 2 * Math.PI);
+                    ctx.arc(dotX, dotY, Math.max(4, 6 * scaleFactor), 0, 2 * Math.PI);
                     ctx.fillStyle = dotGradient;
                     ctx.fill();
                     
                     // Inner dot with enhanced color
                     ctx.beginPath();
-                    ctx.arc(dotX, dotY, Math.max(3, 5 * scaleFactor), 0, 2 * Math.PI);
+                    ctx.arc(dotX, dotY, Math.max(2, 3 * scaleFactor), 0, 2 * Math.PI);
                     ctx.fillStyle = Qt.lighter(dotBaseColor, 1.4);
                     ctx.fill();
                     
                     // Add a small white highlight for extra shine
                     ctx.beginPath();
-                    ctx.arc(dotX - Math.max(1, 2 * scaleFactor), dotY - Math.max(1, 2 * scaleFactor), 
-                           Math.max(1, 2 * scaleFactor), 0, 2 * Math.PI);
+                    ctx.arc(dotX - Math.max(1, 1.5 * scaleFactor), dotY - Math.max(1, 1.5 * scaleFactor), 
+                           Math.max(1, 1.5 * scaleFactor), 0, 2 * Math.PI);
                     ctx.fillStyle = Qt.rgba(1, 1, 1, 0.8);
                     ctx.fill();
                 }
@@ -420,7 +435,7 @@ Item {
             id: timerText
             text: formatTime(timerSeconds)
             font.family: customFontLoader.name
-            font.pixelSize: Math.max(20, 40 * scaleFactor)
+            font.pixelSize: Math.max(24, 48 * scaleFactor)
             font.bold: true
             // color: timerSeconds <= 10 ? oxfordBlue2 : yinmnBlue
             // color: timerSeconds <= 10 ? urgencyRed : lightBlue
