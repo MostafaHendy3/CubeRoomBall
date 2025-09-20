@@ -6,7 +6,7 @@ from requests.exceptions import ConnectionError, Timeout, RequestException
 import time   
 import numpy as np
 import json
-from PyQt5.QtGui import QMovie,QPainter, QColor, QFont,QFontDatabase ,QImage, QPixmap,QPen, QPainterPath , QPolygonF, QBrush, QRadialGradient, QLinearGradient, QSurfaceFormat
+from PyQt5.QtGui import QPainter, QColor, QFont,QFontDatabase ,QImage, QPixmap,QPen, QPainterPath , QPolygonF, QBrush, QRadialGradient, QLinearGradient, QSurfaceFormat
 from PyQt5.QtCore import QTimer,Qt, pyqtSignal, pyqtSlot ,QThread , QTime,QSize,QRectF,QPointF, QUrl, QObject
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget ,QGridLayout,QLabel,QPushButton,QVBoxLayout,QHBoxLayout,QTableWidget,QTableWidgetItem,QHeaderView,QFrame
 from PyQt5.QtQuickWidgets import QQuickWidget
@@ -1572,8 +1572,8 @@ class Final_Screen(QtWidgets.QMainWindow):
             self.LeaderboardTable.hide()
 
     def setupTimer(self):
-        # Start the GIF
-        self.movie.start()
+        # Background is already set with pixmap
+        pass
     
     def setupUi(self, Home):
         Home.setObjectName("Home")
@@ -1588,19 +1588,17 @@ class Final_Screen(QtWidgets.QMainWindow):
         self.font_family_good = self.load_custom_font("Assets/Fonts/good_times_rg.ttf")
 
         if Home.geometry().width() > 1920:
-            self.movie = QMovie("Assets/1k/CubeRoomBall_final.gif")
-            self.movie.setCacheMode(QMovie.CacheAll)
+            self.background_pixmap = QPixmap("Assets/1k/CubeRoomBall_final.png")
             self.scale = 2
         else:
-            self.movie = QMovie("Assets/1k/CubeRoomBall_final.gif")
-            self.movie.setCacheMode(QMovie.CacheAll)
+            self.background_pixmap = QPixmap("Assets/1k/CubeRoomBall_final.png")
             self.scale = 1
         
         self.Background = QtWidgets.QLabel(self.centralwidget)
         self.Background.setScaledContents(True)
         self.Background.setGeometry(0, 0, Home.geometry().width(), Home.geometry().height())
         self.Background.setText("")
-        self.Background.setMovie(self.movie)
+        self.Background.setPixmap(self.background_pixmap)
         self.Background.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         
         self.TimerWidget(self.centralwidget)
@@ -1883,15 +1881,13 @@ class Final_Screen(QtWidgets.QMainWindow):
     def closeEvent(self, event):
         logger.info("Final screen closing...")
         
-        # Safely stop movie
-        if hasattr(self, 'movie') and self.movie:
+        # Clean up background pixmap
+        if hasattr(self, 'background_pixmap') and self.background_pixmap:
             try:
-                self.movie.stop()
-                self.movie.setCacheMode(QMovie.CacheNone)
-                self.movie = None
-                logger.debug(" Movie cleaned up")
+                self.background_pixmap = None
+                logger.debug(" Background pixmap cleaned up")
             except Exception as e:
-                logger.warning(f"️  Error stopping movie: {e}")
+                logger.warning(f"️  Error cleaning up background pixmap: {e}")
         
         # Safely stop timers (if they exist)
         if hasattr(self, 'timer') and self.timer:
@@ -1974,7 +1970,7 @@ class Final_Screen(QtWidgets.QMainWindow):
             if hasattr(self, 'Background') and self.Background is not None:
                 try:
                     self.Background.clear()
-                    self.Background.setMovie(None)  # Remove movie reference
+                    self.Background.setPixmap(QPixmap())  # Clear pixmap reference
                     self.Background.deleteLater()
                     logger.debug(" Background cleared")
                 except (RuntimeError, AttributeError):
@@ -2259,13 +2255,11 @@ class Active_screen(QWidget):
         print(MainWindow.geometry().width())
 
         if MainWindow.geometry().width() > 1920:
-            self.movie = QMovie("Assets/1k/CubeRoomBall_Activee.gif")
-            self.movie.setCacheMode(QMovie.CacheAll)
+            self.background_pixmap = QPixmap("Assets/1k/CubeRoomBall_Active.png")
             print("1")
             self.scale = 2
         else:
-            self.movie = QMovie("Assets/1k/CubeRoomBall_Activee.gif")
-            self.movie.setCacheMode(QMovie.CacheAll)
+            self.background_pixmap = QPixmap("Assets/1k/CubeRoomBall_Active.png")
             print("2")
             self.scale = 1
         
@@ -2291,8 +2285,7 @@ class Active_screen(QWidget):
         self.Background.setGeometry(QtCore.QRect(0, 0, 1920*self.scale, 1080*self.scale))
         self.Background.setText("")
         self.Background.setScaledContents(True)
-        self.Background.setMovie(self.movie)
-        self.movie.start()
+        self.Background.setPixmap(self.background_pixmap)
         
 
         
@@ -2543,7 +2536,7 @@ class Active_screen(QWidget):
             self.circular_timer_backend.reset_countdown()
             self.circular_timer_backend.start_countdown()
         
-    def stop_movie(self):
+    def stop_background(self):
         self.TimerGame.stop()
         
     def load_custom_font(self, font_path):
@@ -2575,15 +2568,13 @@ class Active_screen(QWidget):
         #     except Exception as e:
         #         logger.warning(f"️  Error stopping media player: {e}")
         
-        # Safely stop movie
-        if hasattr(self, 'movie') and self.movie:
+        # Clean up background pixmap
+        if hasattr(self, 'background_pixmap') and self.background_pixmap:
             try:
-                self.movie.stop()
-                self.movie.setCacheMode(QMovie.CacheNone)
-                self.movie = None
-                logger.debug(" Movie cleaned up")
+                self.background_pixmap = None
+                logger.debug(" Background pixmap cleaned up")
             except Exception as e:
-                logger.warning(f"️  Error stopping movie: {e}")
+                logger.warning(f"️  Error cleaning up background pixmap: {e}")
         
         # Cleanup cube widget
         # if hasattr(self, 'cube_widget') and self.cube_widget:
@@ -2770,14 +2761,12 @@ class TeamMember_screen(QtWidgets.QMainWindow):
         self.font_family_good = self.load_custom_font("Assets/Fonts/good_times_rg.ttf")
         
         if Home.geometry().width() > 1920:
-            self.movie = QMovie("Assets/1k/CubeRoomBall_TeamMembers.gif")
-            self.movie.setCacheMode(QMovie.CacheAll)
+            self.background_pixmap = QPixmap("Assets/1k/CubeRoomBall_TeamMembers.png")  # Using final.png as fallback
             self.scale = 2
             global scaled
             scaled = 2
         else:
-            self.movie = QMovie("Assets/1k/CubeRoomBall_TeamMembers.gif")
-            self.movie.setCacheMode(QMovie.CacheAll)
+            self.background_pixmap = QPixmap("Assets/1k/CubeRoomBall_TeamMembers.png")  # Using final.png as fallback
             self.scale = 1  
             scaled = 1
         
@@ -2785,7 +2774,7 @@ class TeamMember_screen(QtWidgets.QMainWindow):
         self.Background.setScaledContents(True)
         self.Background.setGeometry(0, 0, Home.geometry().width(), Home.geometry().height())
         self.Background.setText("")
-        self.Background.setMovie(self.movie)
+        self.Background.setPixmap(self.background_pixmap)
         self.Background.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         
         #label 
@@ -3013,7 +3002,7 @@ class TeamMember_screen(QtWidgets.QMainWindow):
         self.LeaderboardTable.update()
         Home.setCentralWidget(self.centralwidget)
         
-        self.movie.start()
+        # Background is already set with pixmap
         
         self.retranslateUi(Home)
         # self.play_audio()
@@ -3081,15 +3070,13 @@ class TeamMember_screen(QtWidgets.QMainWindow):
             except Exception as e:
                 logger.warning(f"️  Error stopping timer: {e}")
         
-        # Stop and cleanup movie
-        if hasattr(self, 'movie') and self.movie:
+        # Clean up background pixmap
+        if hasattr(self, 'background_pixmap') and self.background_pixmap:
             try:
-                self.movie.stop()
-                self.movie.setCacheMode(QMovie.CacheNone)
-                self.movie = None
-                logger.debug(" Movie cleaned up")
+                self.background_pixmap = None
+                logger.debug(" Background pixmap cleaned up")
             except Exception as e:
-                logger.warning(f"️  Error stopping movie: {e}")
+                logger.warning(f"️  Error cleaning up background pixmap: {e}")
         
         # # Stop media player
         # if hasattr(self, 'player') and self.player:
@@ -3121,7 +3108,7 @@ class TeamMember_screen(QtWidgets.QMainWindow):
         if hasattr(self, 'Background') and self.Background:
             try:
                 self.Background.clear()
-                self.Background.setMovie(None)
+                self.Background.setPixmap(QPixmap())  # Clear pixmap reference
                 self.Background.deleteLater()
                 self.Background = None
                 logger.debug(" Background cleared")
@@ -3198,14 +3185,12 @@ class Home_screen(QtWidgets.QMainWindow):
         self.font_family_good = self.load_custom_font("Assets/Fonts/good_times_rg.ttf")
         
         if Home.geometry().width() > 1920:
-            self.movie = QMovie("Assets/1k/CubeRoomBall_GameName.gif")
-            self.movie.setCacheMode(QMovie.CacheAll)
+            self.background_pixmap = QPixmap("Assets/1k/CubeRoomBall_GameName.png")
             self.scale = 2
             global scaled
             scaled = 2
         else:
-            self.movie = QMovie("Assets/1k/CubeRoomBall_GameName.gif")
-            self.movie.setCacheMode(QMovie.CacheAll)
+            self.background_pixmap = QPixmap("Assets/1k/CubeRoomBall_GameName.png")
             self.scale = 1  
             scaled = 1
         
@@ -3213,7 +3198,7 @@ class Home_screen(QtWidgets.QMainWindow):
         self.Background.setScaledContents(True)
         self.Background.setGeometry(0, 0, Home.geometry().width(), Home.geometry().height())
         self.Background.setText("")
-        self.Background.setMovie(self.movie)
+        self.Background.setPixmap(self.background_pixmap)
         self.Background.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         
         # Create leaderboard table
@@ -3476,7 +3461,7 @@ class Home_screen(QtWidgets.QMainWindow):
         self.timer.timeout.connect(self.Inactive)
         self.timer.start(11000)
         
-        self.movie.start()
+        # Background pixmap is already set
         
        
         
@@ -3550,13 +3535,10 @@ class Home_screen(QtWidgets.QMainWindow):
         self.timer.stop()
         self.timer3.start(9000)
         if scaled == 1:
-            self.movie = QMovie("Assets/1k/CubeRoomBall_inActive.gif")
-            self.movie.setCacheMode(QMovie.CacheAll)
+            self.background_pixmap = QPixmap("Assets/1k/CubeRoomBall_inActive.png")
         else:
-            self.movie = QMovie("Assets/1k/CubeRoomBall_inActive.gif")
-            self.movie.setCacheMode(QMovie.CacheAll)
-        self.Background.setMovie(self.movie)
-        self.movie.start()
+            self.background_pixmap = QPixmap("Assets/1k/CubeRoomBall_inActive.png")
+        self.Background.setPixmap(self.background_pixmap)
         # Safe table show - check if widget still exists
         try:
             if hasattr(self, 'LeaderboardTable') and self.LeaderboardTable:
@@ -3585,22 +3567,19 @@ class Home_screen(QtWidgets.QMainWindow):
         except (RuntimeError, AttributeError):
             logger.debug("LeaderboardTable already deleted, skipping hide()")
             
-        # Load intro movie with proper scaling
+        # Load intro image with proper scaling
         if scaled == 1:
-            self.movie = QMovie("Assets/1k/CubeRoomBall_GameName.gif")
-            self.movie.setCacheMode(QMovie.CacheAll)
+            self.background_pixmap = QPixmap("Assets/1k/CubeRoomBall_GameName.png")
         else:
-            self.movie = QMovie("Assets/1k/CubeRoomBall_GameName.gif")
-            self.movie.setCacheMode(QMovie.CacheAll)
+            self.background_pixmap = QPixmap("Assets/1k/CubeRoomBall_GameName.png")
             
-        # Safe background and movie operations
+        # Safe background and pixmap operations
         try:
             if hasattr(self, 'Background') and self.Background:
-                self.Background.setMovie(self.movie)
-                self.movie.start()
-                logger.debug(" Intro movie started successfully")
+                self.Background.setPixmap(self.background_pixmap)
+                logger.debug(" Intro image loaded successfully")
         except (RuntimeError, AttributeError):
-            logger.debug("Background widget already deleted, skipping movie operations")
+            logger.debug("Background widget already deleted, skipping background operations")
             
         # Safe timer restart with proper error handling
         try:
@@ -3647,15 +3626,13 @@ class Home_screen(QtWidgets.QMainWindow):
             except Exception as e:
                 logger.warning(f"️  Error stopping timer3: {e}")
         
-        # Stop and cleanup movie
-        if hasattr(self, 'movie') and self.movie:
+        # Clean up background pixmap
+        if hasattr(self, 'background_pixmap') and self.background_pixmap:
             try:
-                self.movie.stop()
-                self.movie.setCacheMode(QMovie.CacheNone)
-                self.movie = None
-                logger.debug(" Movie cleaned up")
+                self.background_pixmap = None
+                logger.debug(" Background pixmap cleaned up")
             except Exception as e:
-                logger.warning(f"️  Error stopping movie: {e}")
+                logger.warning(f"️  Error cleaning up background pixmap: {e}")
         
         # # Stop media player if it exists
         # if hasattr(self, 'player') and self.player:
@@ -3693,7 +3670,7 @@ class Home_screen(QtWidgets.QMainWindow):
             if hasattr(self, 'Background') and self.Background is not None:
                 try:
                     self.Background.clear()
-                    self.Background.setMovie(None)  # Remove movie reference
+                    self.Background.setPixmap(QPixmap())  # Clear pixmap reference
                     self.Background.deleteLater()
                     logger.debug(" Background cleared")
                 except (RuntimeError, AttributeError):
@@ -3837,7 +3814,7 @@ class MainApp(QtWidgets.QMainWindow):
         self.audio_thread.player_state_changed.connect(
             lambda name, state: print(f"Player {name} state: {state}")
         )
-        # self.start_Home_screen()
+        self.start_Home_screen()
 
          # Create audio service thread
         
@@ -3857,6 +3834,7 @@ class MainApp(QtWidgets.QMainWindow):
         """
         @comment: keep this for testing the game manager
         """
+        # self.start_TeamMember_screen()
         # ------------------------------
         # self.start_Active_screen()
         # self.ui_active.start_game()

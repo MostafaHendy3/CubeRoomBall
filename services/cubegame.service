@@ -1,0 +1,30 @@
+[Unit]
+Description=CubeGame Service - Complete QML Sound Version
+After=network.target graphical-session.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=mostafa
+Group=mostafa
+WorkingDirectory=/home/mostafa/UXE/games_UXE_2025/game4
+ExecStart=/usr/bin/python3 /home/mostafa/UXE/games_UXE_2025/game4/CubeGame_New_active_qml_sound.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Environment variables for GUI applications
+Environment=DISPLAY=:0
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Environment=PULSE_RUNTIME_PATH=/run/user/1000/pulse
+Environment=QT_QPA_PLATFORM=xcb
+Environment=QML_IMPORT_PATH=/usr/lib/x86_64-linux-gnu/qt5/qml
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+
+
+[Install]
+WantedBy=multi-user.target
